@@ -39,22 +39,22 @@ twilio serverless:deploy
 
 ## API Request
 
-###Endpoint:
+### Endpoint:
 ```
 {BASE_URL}/send-messages
 ```
 
-###Method:
+### Method:
 ```
 POST
 ```
 
-###Content-Type:
+### Content-Type:
 ```
 application/json
 ``` 
 
-###Parameters:
+### Parameters:
 
 a `JSON` object with the following keys:
 
@@ -97,7 +97,7 @@ a `JSON` object with the following keys:
 | `to` | string | e164 recipient phone number                           | Yes      |
 | `body`   | string | The content of the message                           | Yes      |
 
-##API response:
+## API response:
 
 The API will respond with a JSON Object:
 
