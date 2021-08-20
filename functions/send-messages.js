@@ -1,39 +1,46 @@
 exports.handler = function (context, event, callback) {
-  const phoneNumbers = event.recipients;
-  const message = event.message;
-  const passcode = event.passcode;
+  const { messages, passcode, from, messagingServiceSid, statusCallback } = event;
 
   if (passcode !== context.PASSCODE) {
     const response = new Twilio.Response();
-    response.setStatusCode(401);
+    response.setStatusCode(403);
     response.setBody('Invalid passcode');
     return callback(null, response);
   }
 
+  if (!messages || messages.length <= 0) {
+    const response = new Twilio.Response();
+    response.setStatusCode(400);
+    response.setBody('Missing messages');
+    return callback(null, response);
+  }
+
   const client = context.getTwilioClient();
-  const allMessageRequests = phoneNumbers.map((recepient) => {
-    console.log(recepient);
+  const allMessageRequests = messages.map((message) => {
+    //console.log(message.to);
     return client.messages
       .create({
-        from: context.TWILIO_PHONE_NUMBER,
-        to: recepient.PhoneNumber,
-        body: message,
+        from: from,
+        to: message.to,
+        messagingServiceSid: messagingServiceSid,
+        body: message.body,
+        statusCallback: statusCallback
       })
       .then((msg) => {
-        let resultData = { recepientId: recepient.RecepientId, phone_number: recepient.PhoneNumber, success: true, sid: msg.sid };
-        console.log(resultData);
+        let resultData = { id: message.id, success: true, message: msg };
+        //console.log(resultData);
         return resultData;
       })
       .catch((err) => {
-        let resultData =  { recepientId: recepient.RecepientId, phone_number: recepient.PhoneNumber, success: false, error: err.message };
-        console.log(resultData);
+        let resultData =  { id: message.id, success: false, error: {message: err.message, ...err}};
+        //console.log(resultData);
         return resultData;
       });
   });
 
   Promise.all(allMessageRequests)
-    .then((result) => {
-      return callback(null, { result });
+    .then((results) => {
+      return callback(null, { results });
     })
     .catch((err) => {
       console.error(err);
